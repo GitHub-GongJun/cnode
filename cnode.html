@@ -23,21 +23,30 @@
     .cnodeCon_ul li span{
       margin: 0 20px;
     }
+    .cnodePage li{
+      float: left;
+      list-style: none;
+      height: 40px;
+      display: block;
+      width: 40px;
+      line-height: 40px;
+      border: 1px solid #dddddd;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div id="app">
-    <cnode-tabel v-model='index'></cnode-tabel>
-<!-- <p>{{date}}</p> -->
+    <cnode-tabel :tab_list='tab_list' v-model='index'></cnode-tabel>
     <br>
-    
-      <cnode-con :data_='data1'></cnode-con>
-    
+    <cnode-con :data_='data1'></cnode-con>
+    <br>
+    <cnode-page  v-model='page'></cnode-page>
   </div>
 
   <template id="cnodeTabel">
     <ul class="cnodeTabel_ul">
-      <li :class="{'on':value==i}" v-for='(item,i) in tab_list' :key='item.id' v-text='item.name' @click='$emit("input",i)'></li>
+      <li :class="{'on':value==i}" v-for='(item,i) in tab_list' :key='item.id' v-text='item.name' @click='Tabel(i)'></li>
     </ul>
   </template>
   <template id="cnodeCon">
@@ -52,7 +61,19 @@
       </li>
     </ul>
   </template>
-
+  <template id="cnodePage">
+    <ul class="cnodePage">
+      <li @click='page_click()'><<</li>
+      <li>***</li>
+      <li v-text='value-2' @click='page_click(-2)'></li>
+      <li v-text='value-1' @click='page_click(-1)'></li>
+      <li v-text='value'></li>
+      <li v-text='value+1' @click='page_click(+1)'></li>
+      <li v-text='value+2' @click='page_click(+2)'></li>
+      <li>***</li>
+      <li @click='page_click()'>>></li>
+    </ul>
+  </template>
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   <script>
 
@@ -62,18 +83,37 @@
         value:{
           type: Number,
           required: true,
+        },
+        tab_list:{
+          type: Array,
+          required: true,
         }
       },
       methods:{
       },
       data(){
         return{
-          tab_list: [{ id:1, tab:'all', name:'全部' },
-          { id:2, tab:'good', name:'精华' },
-          { id:3, tab:'share', name:'分享' },
-          { id:4, tab:'ask', name:'问答' },
-          { id:5, tab:'job', name:'招聘' }],
-        }
+        };
+      },
+      methods: {
+        Tabel(i){
+          this.$emit("input",i);
+          let xhr = new XMLHttpRequest();
+          xhr.open('get', 'https://cnodejs.org/api/v1/topics?page=1&tab='+this.tab_list[i].tab+'&limit=8&mdrender=true&_ ' + Date.now());
+          xhr.send(null);
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+              if (xhr.status == 200) {
+                let json = JSON.parse(xhr.responseText);
+                app.data1 = json.data;
+              } else {
+                alert(xhr.status + '2请求失败');
+              };
+            };
+          }
+
+        },
+        
       }
     })
     Vue.component('cnode-con',{
@@ -117,11 +157,39 @@
       },
       data(){
         return{
-          
         }
       }
     })
-
+    Vue.component('cnode-page',{
+      template: '#cnodePage',
+      props: {
+        value: {
+          type: Number,
+          required: true,
+        }
+      },
+      data(){
+        return{};
+      },
+      methods: {
+        page_click(i){
+          this.$emit('input',app.page+i)
+          let xhr = new XMLHttpRequest();
+          xhr.open('get', 'https://cnodejs.org/api/v1/topics?page='+app.page+'&tab='+app.tab_list[app.index].tab+'&limit=8&mdrender=true&_ ' + Date.now());
+          xhr.send(null);
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+              if (xhr.status == 200) {
+                let json = JSON.parse(xhr.responseText);
+                app.data1 = json.data;
+              } else {
+                alert(xhr.status + '2请求失败');
+              };
+            };
+          }
+        }
+      },
+    })
    var app = new Vue({
       el: '#app',
       data: {
@@ -130,13 +198,17 @@
         mdrender: true,
         index: 0,
         data1:[],
-        data2:[{id:1,con:'111'},{id:2,con:'222'},{id:3,con:'333'}],
+        tab_list: [{ id:1, tab:'', name:'全部' },
+          { id:2, tab:'good', name:'精华' },
+          { id:3, tab:'share', name:'分享' },
+          { id:4, tab:'ask', name:'问答' },
+          { id:5, tab:'job', name:'招聘' }],
       },
       methods: {
       },
       mounted: function () {
         let xhr = new XMLHttpRequest();
-        xhr.open('get', 'https://cnodejs.org/api/v1/topics?page=1&limit=8&mdrender=true&_ ' + Date.now());
+        xhr.open('get', 'https://cnodejs.org/api/v1/topics?page='+this.page+'&tab='+this.tab_list[this.index].tab+'&limit='+this.limit+'&mdrender=true&_ ' + Date.now());
         xhr.send(null);
         xhr.onreadystatechange = function () {
           if (xhr.readyState == 4) {
@@ -144,7 +216,7 @@
               let json = JSON.parse(xhr.responseText);
               app.data1 = json.data;
             } else {
-              alert(xhr.status + '请求失败');
+              alert(xhr.status + '1请求失败');
             };
           };
         }

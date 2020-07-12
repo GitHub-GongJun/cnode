@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+      .cnodeTabel_ul li{
+      float: left;
+      list-style: none;
+      color:#80bd01;
+      padding:0 10px;
+      cursor: pointer;
+    }
+    .cnodeTabel_ul li.on{
+      background-color: #80bd01;
+      color: white;
+    }
+    .cnodeCon_ul li{
+      list-style: none;
+      height: 50px;
+    }
+    .cnodeCon_ul li span{
+      margin: 0 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <cnode-tabel v-model='index'></cnode-tabel>
+<!-- <p>{{date}}</p> -->
+    <br>
+    
+      <cnode-con :data_='data1'></cnode-con>
+    
+  </div>
+
+  <template id="cnodeTabel">
+    <ul class="cnodeTabel_ul">
+      <li :class="{'on':value==i}" v-for='(item,i) in tab_list' :key='item.id' v-text='item.name' @click='$emit("input",i)'></li>
+    </ul>
+  </template>
+  <template id="cnodeCon">
+    <ul class="cnodeCon_ul">
+      <li v-for='(item,i) in data_' :key = 'i'>
+        <span v-text='item.author.loginname'>loginname</span>
+        <span v-text='item.reply_count'>reply_count</span>/
+        <span v-text='item.visit_count'>visit_count</span>
+        <span v-text='item.tab'>tab</span>
+        <span v-text='item.title'>title</span>
+        <span v-text='item.create_at'>create_at</span>
+      </li>
+    </ul>
+  </template>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script>
+
+    Vue.component('cnode-tabel',{
+      template: '#cnodeTabel',
+      props: {
+        value:{
+          type: Number,
+          required: true,
+        }
+      },
+      methods:{
+      },
+      data(){
+        return{
+          tab_list: [{ id:1, tab:'all', name:'全部' },
+          { id:2, tab:'good', name:'精华' },
+          { id:3, tab:'share', name:'分享' },
+          { id:4, tab:'ask', name:'问答' },
+          { id:5, tab:'job', name:'招聘' }],
+        }
+      }
+    })
+    Vue.component('cnode-con',{
+      template: '#cnodeCon',
+      props: {
+        // title: {
+        //   type: String,
+        //   required: true
+        // },
+        // top: {
+        //   type: Boolean,
+        //   required: true,
+        // },
+        // reply_count: {
+        //   type: Number,
+        //   required: true
+        // },
+        // visit_count: {
+        //   type: Number,
+        //   required: true
+        // },
+        // create_at: {
+        //   type: String,
+        //   required: true
+        // },
+        // loginname: {
+        //   type: String,
+        //   required: true
+        // },
+        // avatar_url: {
+        //   type: String,
+        //   required: true
+        // }
+        data_: {
+          type: Array,
+          required: true,
+          date:new Date(),
+        }
+      },
+      methods:{
+      },
+      data(){
+        return{
+          
+        }
+      }
+    })
+
+   var app = new Vue({
+      el: '#app',
+      data: {
+        page: 1,
+        limit: 8,
+        mdrender: true,
+        index: 0,
+        data1:[],
+        data2:[{id:1,con:'111'},{id:2,con:'222'},{id:3,con:'333'}],
+      },
+      methods: {
+      },
+      mounted: function () {
+        let xhr = new XMLHttpRequest();
+        xhr.open('get', 'https://cnodejs.org/api/v1/topics?page=1&limit=8&mdrender=true&_ ' + Date.now());
+        xhr.send(null);
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+              let json = JSON.parse(xhr.responseText);
+              app.data1 = json.data;
+            } else {
+              alert(xhr.status + '请求失败');
+            };
+          };
+        }
+      },
+
+    })
+  </script>
+</body>
+</html>
